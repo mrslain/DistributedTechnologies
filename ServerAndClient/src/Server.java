@@ -36,6 +36,7 @@ public class Server
                     input = new DataInputStream(client.getInputStream());
                     output = new DataOutputStream(client.getOutputStream());
                     output.writeInt(input.readInt() + input.readInt());
+                    output.flush();
                 }
                 catch(Exception e)
                 {
