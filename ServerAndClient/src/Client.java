@@ -48,6 +48,10 @@ public class Client {
 
                 int result = input.readInt();
 
+                output.close();
+                input.close();
+                server.close();
+
                 System.out.println(Integer.toString(a) + " + " + Integer.toString(b) + " = " + Integer.toString(result));
 
             } catch (Exception e) {
