@@ -14,6 +14,15 @@ public class RpcClient {
         solver = CreateXmlRpcSolver(port);
     }
 
+    public void makeRequests(int count)
+    {
+        int num = 0;
+        do {
+            ++num;
+            makeRequest();
+        }while (num != count && Sleep());
+    }
+
     public void makeRequest() {
         try {
             int a = random.nextInt(100);
@@ -46,5 +55,15 @@ public class RpcClient {
 
         ClientFactory factory = new ClientFactory(client);
         return (Solver) factory.newInstance(Solver.class);
+    }
+
+    private boolean Sleep()
+    {
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return true;
     }
 }
