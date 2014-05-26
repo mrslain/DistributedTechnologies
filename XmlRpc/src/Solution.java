@@ -1,4 +1,6 @@
-public class Solution {
+import java.io.Serializable;
+
+public class Solution implements Serializable {
     public Solution(double x1, double x2) {
         this.x1 = x1;
         this.x2 = x2;
@@ -27,8 +29,8 @@ public class Solution {
         return x2;
     }
 
-    private boolean isExist;
-    private double x1;
-    private double x2;
+    public boolean isExist;
+    public double x1;
+    public double x2;
 }
 
