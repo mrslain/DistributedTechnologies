@@ -13,11 +13,18 @@ public class Client {
     public void makeRequests(int count)
     {
         int num = 0;
-        do {
-            ++num;
-            makeRequest();
+
+        try {
+            do {
+                ++num;
+                makeRequest();
+
+            }
+            while (num != count && Sleep());
+        } catch (Exception e)
+        {
+            e.printStackTrace();
         }
-        while(num != count);
     }
 
     public void makeRequest()
@@ -54,6 +61,11 @@ public class Client {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean Sleep() throws InterruptedException {
+        Thread.sleep(3000);
+        return true;
     }
 
     private Random random = new Random();
