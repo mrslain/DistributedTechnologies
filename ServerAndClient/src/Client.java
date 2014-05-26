@@ -43,7 +43,9 @@ public class Client {
                 input = new DataInputStream(server.getInputStream());
                 output = new DataOutputStream(server.getOutputStream());
 
-                output.writeChars(Integer.toString(a) + " " + Integer.toString(b));
+//                output.writeChars(Integer.toString(a) + " " + Integer.toString(b));
+                output.writeInt(a);
+                output.writeInt(b);
                 output.flush();
 
                 int result = input.readInt();

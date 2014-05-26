@@ -1,9 +1,6 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 
 public class Server implements Runnable
 {
@@ -16,8 +13,7 @@ public class Server implements Runnable
     {
         ServerSocket ss = null;
 
-        try
-        {
+        try {
             ss = new ServerSocket(port);
 
             while(true) {
@@ -28,33 +24,31 @@ public class Server implements Runnable
                 catch (Exception e) {
                     break;
                 }
-                if(client == null || client.isClosed())
+                if(client == null)
                     break;
 
                 DataInputStream input = null;
                 DataOutputStream output = null;
 
-                try
-                {
+                try {
                     input = new DataInputStream(client.getInputStream());
                     output = new DataOutputStream(client.getOutputStream());
                     output.writeInt(input.readInt() + input.readInt());
                     output.flush();
                 }
-                catch(Exception e)
-                {
+                catch(Exception e) {
                     if(input != null)
                         input.close();
                     if(output != null)
                         output.close();
                     e.printStackTrace();
                 }
-
-                client.close();
+                finally {
+                    client.close();
+                }
             }
         }
-        catch (IOException e)
-        {
+        catch (IOException e) {
             e.printStackTrace();
         }
         finally {
@@ -67,6 +61,6 @@ public class Server implements Runnable
             }
         }
     }
-
+    
     private int port;
 }
