@@ -1,8 +1,11 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class Server
+
+public class Server implements Runnable
 {
     public Server(int port)
     {
