@@ -8,7 +8,7 @@ import java.util.Random;
 
 public class RpcClient {
     private Random random = new Random();
-    private Solver solver;
+    private ISolver solver;
 
     public RpcClient(int port) throws MalformedURLException {
         solver = CreateXmlRpcSolver(port);
@@ -43,7 +43,7 @@ public class RpcClient {
         }
     }
 
-    private static Solver CreateXmlRpcSolver(int port) throws MalformedURLException {
+    private static ISolver CreateXmlRpcSolver(int port) throws MalformedURLException {
         XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
         config.setServerURL(new URL("http://127.0.0.1:" + Integer.toString(port) + "/solve"));
         config.setEnabledForExtensions(true);
@@ -54,7 +54,7 @@ public class RpcClient {
         client.setConfig(config);
 
         ClientFactory factory = new ClientFactory(client);
-        return (Solver) factory.newInstance(Solver.class);
+        return (ISolver) factory.newInstance(ISolver.class);
     }
 
     private boolean Sleep()
