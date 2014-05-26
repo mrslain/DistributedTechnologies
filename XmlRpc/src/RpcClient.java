@@ -25,9 +25,9 @@ public class RpcClient {
 
     public void makeRequest() {
         try {
-            int a = random.nextInt(100);
-            int b = random.nextInt(100);
-            int c = random.nextInt(100);
+            double a = random.nextInt(100);
+            double b = random.nextInt(100);
+            double c = random.nextInt(100);
 
             Solution result = solver.solve(a, b, c);
 

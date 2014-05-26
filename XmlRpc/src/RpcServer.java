@@ -15,7 +15,7 @@ public class RpcServer implements Runnable{
             WebServer webServer = new WebServer(port);
 
             PropertyHandlerMapping phm = new PropertyHandlerMapping();
-            phm.addHandler(Solver.class.getName(), Solver.class);
+            phm.addHandler(ISolver.class.getName(), Solver.class);
 
             XmlRpcStreamServer xmlRpcServer = webServer.getXmlRpcServer();
             xmlRpcServer.setHandlerMapping(phm);
