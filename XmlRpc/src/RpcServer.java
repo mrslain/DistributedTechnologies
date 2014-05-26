@@ -3,7 +3,7 @@ import org.apache.xmlrpc.server.XmlRpcServerConfigImpl;
 import org.apache.xmlrpc.server.XmlRpcStreamServer;
 import org.apache.xmlrpc.webserver.WebServer;
 
-public class RpcServer {
+public class RpcServer implements Runnable{
     private int port;
 
     public RpcServer(int port) {
