@@ -1,0 +1,50 @@
+import org.apache.xmlrpc.client.XmlRpcClient;
+import org.apache.xmlrpc.client.XmlRpcClientConfigImpl;
+import org.apache.xmlrpc.client.util.ClientFactory;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Random;
+
+public class RpcClient {
+    private Random random = new Random();
+    private Solver solver;
+
+    public RpcClient(int port) throws MalformedURLException {
+        solver = CreateXmlRpcSolver(port);
+    }
+
+    public void makeRequest() {
+        try {
+            int a = random.nextInt(100);
+            int b = random.nextInt(100);
+            int c = random.nextInt(100);
+
+            Solution result = solver.solve(a, b, c);
+
+            if (!result.isExist()) {
+                System.out.println("Решение не существует.");
+            } else {
+                System.out.println(String.format("Корни: %s, %s.", result.getX1(), result.getX2()));
+            }
+        } catch (Exception e) {
+            System.err.println("Message: " + e.getMessage());
+            System.err.println("------>");
+            e.printStackTrace();
+        }
+    }
+
+    private static Solver CreateXmlRpcSolver(int port) throws MalformedURLException {
+        XmlRpcClientConfigImpl config = new XmlRpcClientConfigImpl();
+        config.setServerURL(new URL("http://127.0.0.1:" + Integer.toString(port) + "/solve"));
+        config.setEnabledForExtensions(true);
+        config.setConnectionTimeout(60 * 1000);
+        config.setReplyTimeout(60 * 1000);
+
+        XmlRpcClient client = new XmlRpcClient();
+        client.setConfig(config);
+
+        ClientFactory factory = new ClientFactory(client);
+        return (Solver) factory.newInstance(Solver.class);
+    }
+}
