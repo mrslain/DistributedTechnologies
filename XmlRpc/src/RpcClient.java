@@ -29,6 +29,7 @@ public class RpcClient {
             double b = random.nextInt(100);
             double c = random.nextInt(100);
 
+            System.out.println(String.format("Для Уравнения %s * x^2 + %s * x + %s", a, b, c));
             Solution result = solver.solve(a, b, c);
 
             if (!result.isExist()) {
