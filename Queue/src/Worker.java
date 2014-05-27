@@ -46,7 +46,7 @@ public class Worker {
         private final Consumer<RequsetTaskData> consumer;
 
         public WorkerRecipient(ConcurrentLinkedQueue<RequsetTaskData> requsetTaskDatas) throws IOException {
-            this.consumer = new Consumer<RequsetTaskData>("localhost", "RequestsTaskDatas", requsetTaskDatas);
+            this.consumer = new Consumer<RequsetTaskData>("localhost", "RequestTaskDatas", requsetTaskDatas);
         }
 
         public void run() {
