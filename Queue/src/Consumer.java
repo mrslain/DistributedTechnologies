@@ -17,7 +17,7 @@ public class Consumer<T> {
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();
 
-        channel.queueDeclare(queueName, false, false, false, null);
+        channel.queueDeclare(queueName, true, false, false, null);
 
         this.channel = channel;
         this.queueName = queueName;
@@ -26,12 +26,13 @@ public class Consumer<T> {
 
     public void StartRecive() throws IOException, InterruptedException, ClassNotFoundException {
         QueueingConsumer consumer = new QueueingConsumer(channel);
-        channel.basicConsume(queueName, true, consumer);
+        channel.basicConsume(queueName, false, consumer);
 
         while (true) {
             QueueingConsumer.Delivery delivery = consumer.nextDelivery();
             T obj = Serializer.deserialize(delivery.getBody());
             queueRuqeusts.add(obj);
+            channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
         }
     }
 }
