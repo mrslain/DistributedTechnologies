@@ -1,8 +1,7 @@
 import java.io.Serializable;
 
 public class RequsetTaskData implements Serializable, ITaskData {
-    public RequsetTaskData(int a, int b)
-    {
+    public RequsetTaskData(int a, int b) {
         this.a = a;
         this.b = b;
     }
