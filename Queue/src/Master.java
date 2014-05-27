@@ -33,12 +33,17 @@ public class Master {
         }
 
         public void run() {
-            RequsetTaskData req = new RequsetTaskData(random.nextInt(), random.nextInt());
-            requestTaskDatas.put(req.id, req);
-            try {
-                producer.Queue(req);
-            } catch (IOException e) {
-                e.printStackTrace();
+            while (true) {
+                RequsetTaskData req = new RequsetTaskData(random.nextInt(), random.nextInt());
+                requestTaskDatas.putIfAbsent(req.id, req);
+                try {
+                    producer.Queue(req);
+                    Thread.sleep(3000);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
