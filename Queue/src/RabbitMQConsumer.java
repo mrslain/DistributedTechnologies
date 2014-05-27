@@ -1,6 +1,10 @@
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.ObjectInputStream;
+
 public class RabbitMQConsumer {
     public static void main(String []args) throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
@@ -29,11 +33,29 @@ public class RabbitMQConsumer {
             } catch (InterruptedException ie) {
                 continue;
             }
-            System.out.println("Message received"
-                    + new String(delivery.getBody()));
+
+            TaskData taskData = deserialize(delivery.getBody());
+            if(taskData == null)
+                throw new Exception("Что-то пошло не так! Объект недесериализовался.");
+
+
+            System.out.println("Получено сообщение: "
+                    + taskData.message);
             channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
         }
         channel.close();
         conn.close();
+    }
+
+    private static TaskData deserialize(byte[] bytes)
+    {
+        try {
+            ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(bytes));
+            return (TaskData) oin.readObject();
+        }catch(Exception e)
+        {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

@@ -2,6 +2,10 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
 public class RabbitMQProducer {
     public static void main(String []args) throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
@@ -14,10 +18,24 @@ public class RabbitMQProducer {
         Channel channel = conn.createChannel();
         String exchangeName = "myExchange";
         String routingKey = "testRoute";
-        byte[] messageBodyBytes = "Hello, world!".getBytes();
+
+        TaskData taskData = new TaskData();
+        taskData.message = "Hello, world №2!";
+
+
         channel.basicPublish(exchangeName, routingKey
-                ,MessageProperties.PERSISTENT_TEXT_PLAIN, messageBodyBytes) ;
+                ,MessageProperties.PERSISTENT_TEXT_PLAIN, serialize(taskData));
         channel.close();
         conn.close();
+    }
+
+    private static byte[] serialize(TaskData taskData) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        ObjectOutputStream stream = new ObjectOutputStream(byteArrayOutputStream);
+
+        stream.writeObject(taskData);
+        stream.flush();
+
+        return byteArrayOutputStream.toByteArray();
     }
 }
