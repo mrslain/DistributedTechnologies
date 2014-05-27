@@ -7,10 +7,8 @@ import java.util.concurrent.Executors;
 
 public class Master {
 
-    public void run()
-    {
-        try
-        {
+    public void run() {
+        try {
             ExecutorService executorService = Executors.newFixedThreadPool(3);
             ConcurrentSkipListMap<String, RequsetTaskData> tasks = new ConcurrentSkipListMap<String, RequsetTaskData>();
             ConcurrentLinkedQueue<ResponseTaskData> responseTaskDatas = new ConcurrentLinkedQueue<ResponseTaskData>();
@@ -18,8 +16,7 @@ public class Master {
             executorService.execute(new MasterRecipient(responseTaskDatas));
             executorService.execute(new Reporter(tasks, responseTaskDatas));
 
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             System.err.println(e);
         }
 
@@ -75,13 +72,10 @@ public class Master {
             this.responseQueue = responseQueue;
         }
 
-        public void run()
-        {
-            while(true)
-            {
+        public void run() {
+            while (true) {
                 ResponseTaskData responseTaskData = responseQueue.poll();
-                if(responseTaskData != null)
-                {
+                if (responseTaskData != null) {
                     RequsetTaskData requsetTaskData = requestTaskDatas.get(responseTaskData.id);
                     System.out.println(String.format("%s + %s = %s", requsetTaskData.a, requsetTaskData.b, responseTaskData.answer));
                 }
