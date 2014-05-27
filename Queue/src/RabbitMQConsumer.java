@@ -47,11 +47,11 @@ public class RabbitMQConsumer {
         conn.close();
     }
 
-    private static TaskData deserialize(byte[] bytes)
+    private static <T> T deserialize(byte[] bytes)
     {
         try {
             ObjectInputStream oin = new ObjectInputStream(new ByteArrayInputStream(bytes));
-            return (TaskData) oin.readObject();
+            return (T) oin.readObject();
         }catch(Exception e)
         {
             e.printStackTrace();

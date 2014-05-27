@@ -29,7 +29,7 @@ public class RabbitMQProducer {
         conn.close();
     }
 
-    private static byte[] serialize(TaskData taskData) throws IOException {
+    private static <T> byte[] serialize(T taskData) throws IOException {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         ObjectOutputStream stream = new ObjectOutputStream(byteArrayOutputStream);
 
