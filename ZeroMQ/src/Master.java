@@ -9,22 +9,47 @@ import java.util.concurrent.Executors;
 public class Master {
     public void run() {
         try {
-            ExecutorService executorService = Executors.newFixedThreadPool(3);
+            ExecutorService executorService = Executors.newFixedThreadPool(4);
+
             ConcurrentSkipListMap<String, RequestTaskData> requestsCash = new ConcurrentSkipListMap<String, RequestTaskData>();
+            ConcurrentLinkedQueue<RequestTaskData> requestsQueue = new ConcurrentLinkedQueue<RequestTaskData>();
             ConcurrentLinkedQueue<ResponseTaskData> responsesQueue = new ConcurrentLinkedQueue<ResponseTaskData>();
-            executorService.execute(new MasterSender(requestsCash));
+
+            executorService.execute(new MasterSender(requestsQueue, requestsCash));
             executorService.execute(new MasterRecipient(responsesQueue));
             executorService.execute(new Reporter(requestsCash, responsesQueue));
+            executorService.execute(new RequestGenerator(requestsQueue));
         } catch (Exception e) {
             System.err.println(e);
         }
     }
 
-    private class MasterSender implements Runnable {
+    private class RequestGenerator implements Runnable {
+        private ConcurrentLinkedQueue<RequestTaskData> requestsQueue;
         private Random random = new Random();
+
+        private RequestGenerator(ConcurrentLinkedQueue<RequestTaskData> requestsQueue) {
+            this.requestsQueue = requestsQueue;
+        }
+
+        public void run() {
+            while (true) {
+                requestsQueue.add(new RequestTaskData(random.nextInt(100), random.nextInt(100)));
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private class MasterSender implements Runnable {
+        private ConcurrentLinkedQueue<RequestTaskData> requestsQueue;
         private ConcurrentSkipListMap<String, RequestTaskData> requestsCash;
 
-        public MasterSender(ConcurrentSkipListMap<String, RequestTaskData> requestsCash) {
+        public MasterSender(ConcurrentLinkedQueue<RequestTaskData> requestsQueue, ConcurrentSkipListMap<String, RequestTaskData> requestsCash) {
+            this.requestsQueue = requestsQueue;
             this.requestsCash = requestsCash;
         }
 
@@ -34,10 +59,11 @@ public class Master {
             publisher.bind("tcp://*:3147");
             try {
                 while (true) {
-                    RequestTaskData request = new RequestTaskData(random.nextInt(100), random.nextInt(100));
-                    publisher.send(Serializer.serialize(request), 0);
-                    requestsCash.putIfAbsent(request.id, request);
-                    Thread.sleep(3000);
+                    RequestTaskData request = requestsQueue.poll();
+                    if (request != null) {
+                        publisher.send(Serializer.serialize(request), 0);
+                        requestsCash.putIfAbsent(request.id, request);
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
