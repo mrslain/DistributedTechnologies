@@ -15,7 +15,6 @@ public class Master {
             executorService.execute(new MasterSender(requestsCash));
             executorService.execute(new MasterRecipient(responsesQueue));
             executorService.execute(new Reporter(requestsCash, responsesQueue));
-
         } catch (Exception e) {
             System.err.println(e);
         }
@@ -35,9 +34,10 @@ public class Master {
             publisher.bind("tcp://*:3147");
             try {
                 while (true) {
-                    RequestTaskData request = new RequestTaskData(random.nextInt(), random.nextInt());
+                    RequestTaskData request = new RequestTaskData(random.nextInt(100), random.nextInt(100));
                     publisher.send(Serializer.serialize(request), 0);
                     requestsCash.putIfAbsent(request.id, request);
+                    Thread.sleep(3000);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
