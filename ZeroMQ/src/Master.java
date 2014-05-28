@@ -40,7 +40,7 @@ public class Master {
             this.requestsQueue = requestsQueue;
             this.responseCash = responseCash;
 
-            InetSocketAddress address = new InetSocketAddress("192.168.12.99", 8080);
+            InetSocketAddress address = new InetSocketAddress("localhost", 8080);
             httpServer = HttpServer.create(address, 0);
             HttpHandler handler = new HttpHandler() {
                 public void handle(HttpExchange exchange) throws IOException {
@@ -48,6 +48,8 @@ public class Master {
                     String resp = "";
                     try
                     {
+                        if(s == null)
+                            return;
                         String[] parts = s.split(";|=");
                         String aStr = parts[1];
                         String bStr = parts[3];
