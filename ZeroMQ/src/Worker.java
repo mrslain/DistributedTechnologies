@@ -5,10 +5,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class Worker {
-    public void run()
-    {
-        try
-        {
+    public void run() {
+        try {
             ExecutorService executorService = Executors.newFixedThreadPool(3);
 
             ConcurrentLinkedQueue<RequestTaskData> requestsQueue = new ConcurrentLinkedQueue<RequestTaskData>();
@@ -18,14 +16,12 @@ public class Worker {
             executorService.execute(new WorkerSender(responsesQueue));
             executorService.execute(new WorkerExecutor(requestsQueue, responsesQueue));
 
-        } catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private class WorkerRecipient implements Runnable
-    {
+    private class WorkerRecipient implements Runnable {
         private ConcurrentLinkedQueue<RequestTaskData> requestsQueue;
 
         private WorkerRecipient(ConcurrentLinkedQueue<RequestTaskData> requestsQueue) {
@@ -33,22 +29,18 @@ public class Worker {
             this.requestsQueue = requestsQueue;
         }
 
-        public void run()
-        {
+        public void run() {
             ZMQ.Context context = ZMQ.context(1);
 
             ZMQ.Socket subscriber = context.socket(ZMQ.SUB);
             subscriber.connect("tcp://localhost:3147");
             subscriber.subscribe("".getBytes());
 
-            try
-            {
-                while (true)
-                {
+            try {
+                while (true) {
                     requestsQueue.add(Serializer.<RequestTaskData>deserialize(subscriber.recv(0)));
                 }
-            } catch (Exception e)
-            {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
@@ -57,31 +49,26 @@ public class Worker {
         }
     }
 
-    private class WorkerSender implements Runnable
-    {
+    private class WorkerSender implements Runnable {
         private ConcurrentLinkedQueue<ResponseTaskData> responsesQueue;
 
         private WorkerSender(ConcurrentLinkedQueue<ResponseTaskData> responsesQueue) {
             this.responsesQueue = responsesQueue;
         }
 
-        public void run()
-        {
+        public void run() {
             ZMQ.Context context = ZMQ.context(1);
             ZMQ.Socket sender = context.socket(ZMQ.PUSH);
             sender.connect("tcp://*:3146");
 
-            try
-            {
-                while (true)
-                {
+            try {
+                while (true) {
                     ResponseTaskData response = responsesQueue.poll();
-                    if(response != null) {
+                    if (response != null) {
                         sender.send(Serializer.serialize(response), 0);
                     }
                 }
-            } catch (Exception e)
-            {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
