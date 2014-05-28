@@ -1,6 +1,11 @@
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
 import org.zeromq.ZMQ;
 
-import java.util.Random;
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ExecutorService;
@@ -9,16 +14,15 @@ import java.util.concurrent.Executors;
 public class Master {
     public void run() {
         try {
-            ExecutorService executorService = Executors.newFixedThreadPool(4);
+            ExecutorService executorService = Executors.newFixedThreadPool(3);
 
             ConcurrentSkipListMap<String, RequestTaskData> requestsCash = new ConcurrentSkipListMap<String, RequestTaskData>();
+            ConcurrentSkipListMap<String, ResponseTaskData> responsesCash = new ConcurrentSkipListMap<String, ResponseTaskData>();
             ConcurrentLinkedQueue<RequestTaskData> requestsQueue = new ConcurrentLinkedQueue<RequestTaskData>();
-            ConcurrentLinkedQueue<ResponseTaskData> responsesQueue = new ConcurrentLinkedQueue<ResponseTaskData>();
 
             executorService.execute(new MasterSender(requestsQueue, requestsCash));
-            executorService.execute(new MasterRecipient(responsesQueue));
-            executorService.execute(new Reporter(requestsCash, responsesQueue));
-            executorService.execute(new RequestGenerator(requestsQueue));
+            executorService.execute(new MasterRecipient(responsesCash));
+            executorService.execute(new RequestGenerator(requestsQueue, responsesCash));
         } catch (Exception e) {
             System.err.println(e);
         }
@@ -26,21 +30,68 @@ public class Master {
 
     private class RequestGenerator implements Runnable {
         private ConcurrentLinkedQueue<RequestTaskData> requestsQueue;
-        private Random random = new Random();
+        private ConcurrentSkipListMap<String, ResponseTaskData> responseCash;
 
-        private RequestGenerator(ConcurrentLinkedQueue<RequestTaskData> requestsQueue) {
+        private HttpServer httpServer;
+
+
+        private RequestGenerator(final ConcurrentLinkedQueue<RequestTaskData> requestsQueue,
+                                 final ConcurrentSkipListMap<String, ResponseTaskData> responseCash) throws IOException {
             this.requestsQueue = requestsQueue;
+            this.responseCash = responseCash;
+
+            InetSocketAddress address = new InetSocketAddress("192.168.12.99", 8080);
+            httpServer = HttpServer.create(address, 0);
+            HttpHandler handler = new HttpHandler() {
+                public void handle(HttpExchange exchange) throws IOException {
+                    String s = exchange.getRequestURI().getQuery();
+                    String resp = "";
+                    try
+                    {
+                        String[] parts = s.split(";|=");
+                        String aStr = parts[1];
+                        String bStr = parts[3];
+                        int a = Integer.parseInt(aStr);
+                        int b = Integer.parseInt(bStr);
+                        RequestTaskData request = new RequestTaskData(a, b);
+
+                        requestsQueue.add(request);
+
+                        int attempts = 0;
+                        while (true)
+                        {
+                            ++attempts;
+                            if(attempts ==6) {
+                                resp = "calculation timeout";
+                                break;
+                            }
+                            ResponseTaskData response = responseCash.get(request.id);
+                            if(response != null)
+                            {
+                                resp = String.format("%s + %s = %s", request.a, request.b, response.answer);
+                                break;
+                            }
+                            Thread.sleep(200);
+                        }
+                    } catch (Exception e)
+                    {
+                        resp = "server error. =(";
+                        e.printStackTrace();
+                    }
+
+                    byte[] bytes = resp.getBytes();
+
+                    exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK,bytes.length);
+                    exchange.getResponseBody().write(bytes);
+                    exchange.close();
+                }
+            };
+            httpServer.createContext("/", handler);
+            httpServer.setExecutor(Executors.newSingleThreadExecutor());
         }
 
         public void run() {
-            while (true) {
-                requestsQueue.add(new RequestTaskData(random.nextInt(100), random.nextInt(100)));
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+            httpServer.start();
         }
     }
 
@@ -76,10 +127,10 @@ public class Master {
     }
 
     private class MasterRecipient implements Runnable {
-        private ConcurrentLinkedQueue<ResponseTaskData> responsesQueue;
+        private ConcurrentSkipListMap<String, ResponseTaskData> responsesCash;
 
-        public MasterRecipient(ConcurrentLinkedQueue<ResponseTaskData> responsesQueue) {
-            this.responsesQueue = responsesQueue;
+        public MasterRecipient(ConcurrentSkipListMap<String, ResponseTaskData> responsesCash) {
+            this.responsesCash = responsesCash;
         }
 
         public void run() {
@@ -90,7 +141,7 @@ public class Master {
             try {
                 while (true) {
                     ResponseTaskData response = Serializer.deserialize(receiver.recv(0));
-                    responsesQueue.add(response);
+                    responsesCash.putIfAbsent(response.id, response);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -98,27 +149,6 @@ public class Master {
             receiver.close();
             receiver.close();
             context.term();
-        }
-    }
-
-    private class Reporter implements Runnable {
-        private ConcurrentSkipListMap<String, RequestTaskData> requestsCash;
-        private ConcurrentLinkedQueue<ResponseTaskData> responsesQueue;
-
-        public Reporter(ConcurrentSkipListMap<String, RequestTaskData> requestsCash, ConcurrentLinkedQueue<ResponseTaskData> responsesQueue) {
-
-            this.requestsCash = requestsCash;
-            this.responsesQueue = responsesQueue;
-        }
-
-        public void run() {
-            while (true) {
-                ResponseTaskData responseTaskData = responsesQueue.poll();
-                if (responseTaskData != null) {
-                    RequestTaskData requsetTaskData = requestsCash.get(responseTaskData.id);
-                    System.out.println(String.format("%s + %s = %s", requsetTaskData.a, requsetTaskData.b, responseTaskData.answer));
-                }
-            }
         }
     }
 }
