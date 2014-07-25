@@ -1,11 +1,18 @@
 <workflow-app xmlns="uri:oozie:workflow:0.2" name="n-gramm-count-wf">
-    <start to="gc-node"/>
-    <action name="gc-node">
+<start to="forking"/>
+<fork name="forking">
+	<path start="gc1-node" />
+	<path start="gc2-node" />
+	<path start="gc3-node" />
+</fork>
+    
+
+    <action name="gc1-node">
         <map-reduce>
             <job-tracker>${jobTracker}</job-tracker>
             <name-node>${nameNode}</name-node>
             <prepare>
-                <delete path="${nameNode}/user/${wf:user()}/output-data/${outputDir}"/>
+                <delete path="${nameNode}/user/${wf:user()}/output-data/${outputDir}/Monogramm"/>
             </prepare>
             <configuration>
                 <property>
@@ -14,29 +21,120 @@
                 </property>
                 <property>
                     <name>mapred.mapper.class</name>
-                    <value>EngramCount$Map1.class</value>
+                    <value>my.oozie.Map1</value>
                 </property>
+		<property>
+                    <name>mapred.output.key.class</name>
+       		    <value>org.apache.hadoop.io.Text</value>
+     		</property>
+     		<property>
+       		    <name>mapred.output.value.class</name>
+       		    <value>org.apache.hadoop.io.IntWritable</value>
+     		</property>
                 <property>
                     <name>mapred.reducer.class</name>
-                    <value>EngramCount$Reduce</value>
-                </property>
-                <property>
-                    <name>mapred.map.tasks</name>
-                    <value>1</value>
+                    <value>my.oozie.Reduce</value>
                 </property>
                 <property>
                     <name>mapred.input.dir</name>
-                    <value>/user/${wf:user()}/input-data/input</value>
+                    <value>/user/${wf:user()}/input-data/input2</value>
                 </property>
                 <property>
                     <name>mapred.output.dir</name>
-                    <value>/user/${wf:user()}/output-data/${outputDir}</value>
+                    <value>/user/${wf:user()}/output-data/${outputDir}/Monogramm</value>
                 </property>
             </configuration>
         </map-reduce>
-        <ok to="end"/>
+        <ok to="joining"/>
         <error to="fail"/>
     </action>
+
+    <action name="gc2-node">
+        <map-reduce>
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare>
+                <delete path="${nameNode}/user/${wf:user()}/output-data/${outputDir}/Bigramm"/>
+            </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+                <property>
+                    <name>mapred.mapper.class</name>
+                    <value>my.oozie.Map2</value>
+                </property>
+		<property>
+                    <name>mapred.output.key.class</name>
+       		    <value>org.apache.hadoop.io.Text</value>
+     		</property>
+     		<property>
+       		    <name>mapred.output.value.class</name>
+       		    <value>org.apache.hadoop.io.IntWritable</value>
+     		</property>
+                <property>
+                    <name>mapred.reducer.class</name>
+                    <value>my.oozie.Reduce</value>
+                </property>
+                <property>
+                    <name>mapred.input.dir</name>
+                    <value>/user/${wf:user()}/input-data/input2</value>
+                </property>
+                <property>
+                    <name>mapred.output.dir</name>
+                    <value>/user/${wf:user()}/output-data/${outputDir}/Bigramm</value>
+                </property>
+            </configuration>
+        </map-reduce>
+        <ok to="joining"/>
+        <error to="fail"/>
+    </action>
+
+    <action name="gc3-node">
+        <map-reduce>
+            <job-tracker>${jobTracker}</job-tracker>
+            <name-node>${nameNode}</name-node>
+            <prepare>
+                <delete path="${nameNode}/user/${wf:user()}/output-data/${outputDir}/Trigramm"/>
+            </prepare>
+            <configuration>
+                <property>
+                    <name>mapred.job.queue.name</name>
+                    <value>${queueName}</value>
+                </property>
+                <property>
+                    <name>mapred.mapper.class</name>
+                    <value>my.oozie.Map3</value>
+                </property>
+		<property>
+                    <name>mapred.output.key.class</name>
+       		    <value>org.apache.hadoop.io.Text</value>
+     		</property>
+     		<property>
+       		    <name>mapred.output.value.class</name>
+       		    <value>org.apache.hadoop.io.IntWritable</value>
+     		</property>
+                <property>
+                    <name>mapred.reducer.class</name>
+                    <value>my.oozie.Reduce</value>
+                </property>
+                <property>
+                    <name>mapred.input.dir</name>
+                    <value>/user/${wf:user()}/input-data/input2</value>
+                </property>
+                <property>
+                    <name>mapred.output.dir</name>
+                    <value>/user/${wf:user()}/output-data/${outputDir}/Trigramm</value>
+                </property>
+            </configuration>
+        </map-reduce>
+        <ok to="joining"/>
+        <error to="fail"/>
+    </action>
+
+	<join name="joining" to="end"/>
+
     <kill name="fail">
         <message>Map/Reduce failed, error message[${wf:errorMessage(wf:lastErrorNode())}]</message>
     </kill>
