@@ -37,7 +37,7 @@
                 </property>
                 <property>
                     <name>mapred.input.dir</name>
-                    <value>/user/${wf:user()}/input-data/input2</value>
+                    <value>/user/${wf:user()}/input-data/input</value>
                 </property>
                 <property>
                     <name>mapred.output.dir</name>
@@ -79,7 +79,7 @@
                 </property>
                 <property>
                     <name>mapred.input.dir</name>
-                    <value>/user/${wf:user()}/input-data/input2</value>
+                    <value>/user/${wf:user()}/input-data/input</value>
                 </property>
                 <property>
                     <name>mapred.output.dir</name>
@@ -121,7 +121,7 @@
                 </property>
                 <property>
                     <name>mapred.input.dir</name>
-                    <value>/user/${wf:user()}/input-data/input2</value>
+                    <value>/user/${wf:user()}/input-data/input</value>
                 </property>
                 <property>
                     <name>mapred.output.dir</name>
